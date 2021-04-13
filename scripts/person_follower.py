@@ -23,12 +23,11 @@ class PersonFollower(object):
         
         self.SAFE_DIST = 0.5
         self.SAFE_MARGIN = 0.05
-        # self.DEADZONE = pi / 36 # approximately 5 degrees
-        self.DEADZONE = pi / 18 # approximately 20 degrees
+        self.DEADZONE = pi / 18 # approximately 10 degrees
 
     """
-    get_scan: subscribe the the /scan topic to get the direction/distance of the
-    closest object.
+    get_scan: callback function for /scan topic subscriber to get the
+    direction/distance of the closest object.
     """
     def get_scan(self, data):
         min_distance = inf
@@ -43,7 +42,7 @@ class PersonFollower(object):
                 min_distance = dist
                 angle_to_min = i
 
-        """ Average the last 10 readings to reduce noise. """
+        """ Get the median of the last 10 readings to reduce noise. """
         self.prev_dist.append(min_distance)
         self.prev_angle.append(angle_to_min)
         
@@ -72,6 +71,10 @@ class PersonFollower(object):
             b = (2 * pi) + 0.05
             return (m * self.angle_to_closest) - b
 
+    """
+    get_speed: get the driving speed of the robot based on its proximity to the
+    safety distance of the closest object.
+    """
     def get_speed(self):
         dist_to_safe_zone = self.distance_to_closest - self.SAFE_DIST
         if dist_to_safe_zone > 0:
@@ -82,30 +85,27 @@ class PersonFollower(object):
     def run(self):
         """ Main functionality """
         rospy.sleep(5.0)
-        start_time = time.time()
         
         while not rospy.is_shutdown():
             """ Get the angle to the closest object. """
             angle = self.get_angle()
 
             if self.distance_to_closest < self.SAFE_DIST:
+                """ Prioritize staying in the safe zone. """
                 forward_twist = Twist(linear=Vector3(self.get_speed(), 0, 0))
-                print("driving " + str(self.get_speed()))
                 self.publisher.publish(forward_twist)
             elif abs(angle) > self.DEADZONE:
+                """ Turn the robot into the deadzone of angles. """
                 turn_twist = Twist(angular=Vector3(0, 0, self.TURN_SPEED * angle / pi))
-                print("turning " + str(self.TURN_SPEED * angle / pi))
                 self.publisher.publish(turn_twist)
             else:
+                """ Drive the robot into the safe zone. """
                 is_in_margin = abs(self.distance_to_closest - self.SAFE_DIST) < self.SAFE_MARGIN
                 if self.distance_to_closest <= 3.6 and not is_in_margin:
                     forward_twist = Twist(linear=Vector3(self.get_speed(), 0, 0))
-                    print("driving " + str(self.get_speed()))
                     self.publisher.publish(forward_twist)
                 else:
                     self.publisher.publish(Twist())
-                
-            #rospy.sleep(0.05)
 
 if __name__ == "__main__":
     node = PersonFollower()
