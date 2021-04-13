@@ -15,7 +15,7 @@
 ![Figure 2: Turtlebot3, following the closest object outside of a safe distance.](./follow_person.gif)
 
 ### Wall Follower
-![Figure 3: The robot attempting to follow the wall.](./wall_follower.gif)
+![Figure 3: Turtlebot3, attempting to follow the wall.](./wall_follower.gif)
 
 ## Challenges
 Learning to control the robot's movement has been the most difficult aspect of this project. In the first behavior, I thought I could send turn/drive commands to the robot in a loop, but this was prone to innaccuracy of movement in the simulation, and was impossible to control in the middle of a command. When I implemented this in the second behavior, it was impossible to get the robot to follow the closest object consistently, so I realized that I needed to integrate the control functionality in the main loop of the node, instead of separating it out into a different method.
@@ -26,3 +26,4 @@ Getting the robot to drive in a straight line, or at least to move in a predicti
 
 ## Takeaways
 * Given the course material so far, there seems to be a large deal of importance placed on being able to tell where the robot is when controlling it, which is something I had taken for granted.
+* The logic of the robots seems to be simple when boiled down, but determining the action needed and specific velocities/sensitivities seems to require trial and error, until the solution becomes obvious.  
